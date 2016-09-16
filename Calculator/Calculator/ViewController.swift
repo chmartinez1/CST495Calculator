@@ -10,19 +10,32 @@ import UIKit
 
 class ViewController: UIViewController {
 
-
-
     @IBOutlet weak var display: UILabel!
-    
+    @IBOutlet weak var history: UILabel!
     var userIsInTheMiddleOfTypingANumber = false
-
+    var userTypedDot = false
+    
     @IBAction func appendDigit(sender: UIButton) {
         let digit = sender.currentTitle!
         if userIsInTheMiddleOfTypingANumber{
+        
+        if(!userTypedDot && digit == "." || digit == "π"){
         display.text = display.text! + digit
+        history.text = history.text! + digit
         }else{
+            display.text = display.text! + digit
+            history.text = history.text! + digit
+            }
+        }
+        else{
             display.text = digit
+            history.text = history.text! + digit
             userIsInTheMiddleOfTypingANumber = true
+        }
+        if(digit == "."){
+            if (userTypedDot==false){
+                userTypedDot = true
+            }
         }
         
     }
@@ -32,17 +45,35 @@ class ViewController: UIViewController {
         if userIsInTheMiddleOfTypingANumber{
             enter()
         }
+        
         switch operation {
-        case "×":performOperation{$0 * $1}
+        case "×":
+            self.history.text = history.text! + "x"
+            performOperation{$0 * $1}
+            
         case "÷":performOperation{$1 / $0}
+            self.history.text = history.text! + "÷"
         case "+":performOperation{$0 + $1}
+            self.history.text = history.text! + "+"
         case "−":performOperation{$1 - $0}
+            self.history.text = history.text! + "-"
         case "√":performOperation{sqrt($0)}
-        case "sin":performOperation{$0}
-        case "cos":performOperation{$0}
-        case "π":performOperation{$0}
+            self.history.text = history.text! + "√"
+        case "sin":performOperation{sin($0)}
+            self.history.text = history.text! + "sin"
+        case "cos":performOperation{cos($0)}
+            self.history.text = history.text! + "cos"
         default:break
         }
+        
+    }
+    
+    @IBAction func clear(sender: UIButton) {
+        operandStack.removeAll()
+        display.text = "0"
+        history.text = ""
+        userIsInTheMiddleOfTypingANumber = false
+        userTypedDot = false
     }
     var operandStack = Array<Double>()
 
@@ -65,9 +96,15 @@ class ViewController: UIViewController {
 
 
     @IBAction func enter() {
+        if(display.text == "π"){
+            operandStack.append(M_PI);
+            userIsInTheMiddleOfTypingANumber = false
+            print("operandStack = \(operandStack)")
+        }else{
         operandStack.append(displayValue)
         userIsInTheMiddleOfTypingANumber = false
         print("operandStack = \(operandStack)")
+        }
         
     }
     
