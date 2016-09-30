@@ -12,10 +12,12 @@ class ViewController: UIViewController {
 
     @IBOutlet weak var display: UILabel!
     @IBOutlet weak var history: UILabel!
+    
     var userIsInTheMiddleOfTypingANumber = false
     var userTypedDot = false
+    var brain = CalculatorBrain()
     
-    @IBAction func appendDigit(sender: UIButton) {
+    @IBAction func appendDigit(_ sender: UIButton) {
         let digit = sender.currentTitle!
         if userIsInTheMiddleOfTypingANumber{
         
@@ -40,70 +42,36 @@ class ViewController: UIViewController {
         
     }
     
-    @IBAction func operate(sender: UIButton) {
-        let operation = sender.currentTitle!
-        if userIsInTheMiddleOfTypingANumber{
-            enter()
-        }
-        
-        switch operation {
-        case "×":
-            self.history.text = history.text! + "x"
-            performOperation{$0 * $1}
-            
-        case "÷":performOperation{$1 / $0}
-            self.history.text = history.text! + "÷"
-        case "+":performOperation{$0 + $1}
-            self.history.text = history.text! + "+"
-        case "−":performOperation{$1 - $0}
-            self.history.text = history.text! + "-"
-        case "√":performOperation{sqrt($0)}
-            self.history.text = history.text! + "√"
-        case "sin":performOperation{sin($0)}
-            self.history.text = history.text! + "sin"
-        case "cos":performOperation{cos($0)}
-            self.history.text = history.text! + "cos"
-        default:break
-        }
-        
-    }
-    
-    @IBAction func clear(sender: UIButton) {
-        operandStack.removeAll()
+    @IBAction func clear(_ sender: UIButton) {
         display.text = "0"
         history.text = ""
+        brain.emptyStack()
         userIsInTheMiddleOfTypingANumber = false
         userTypedDot = false
     }
-    var operandStack = Array<Double>()
-
-    func performOperation(operation: (Double, Double) -> Double)
-    {
-        if operandStack.count >= 2 {
-            displayValue = operation(operandStack.removeLast(), operandStack.removeLast())
+    
+    @IBAction func operate(_ sender: UIButton) {
+        
+        if userIsInTheMiddleOfTypingANumber{
             enter()
         }
-        
-    }
-
-    private func performOperation(operation: Double -> Double) {
-        if operandStack.count >= 1 {
-            displayValue = operation(operandStack.removeLast())
-            enter()
+        if let operation = sender.currentTitle{
+            if let result =  brain.preformOperation(symbol: operation){
+                displayValue = result
+            }else{
+                displayValue = 0
+            }
         }
         
+        
     }
-
-
+    
     @IBAction func enter() {
-        if(display.text == "π"){
-            operandStack.append(M_PI);
-            userIsInTheMiddleOfTypingANumber = false
-            print("operandStack = \(operandStack)")
+       userIsInTheMiddleOfTypingANumber = false
+        if let result = brain.pushOperand(operand: displayValue){
+            displayValue = result
         }else{
-        operandStack.append(displayValue)
-        userIsInTheMiddleOfTypingANumber = false
-        print("operandStack = \(operandStack)")
+            displayValue = 0
         }
         
     }
@@ -111,7 +79,7 @@ class ViewController: UIViewController {
 
     var displayValue:Double {
         get{
-            return NSNumberFormatter().numberFromString(display.text!)!.doubleValue
+            return NumberFormatter().number(from: display.text!)!.doubleValue
         }
         set{
             display.text = "\(newValue)"
